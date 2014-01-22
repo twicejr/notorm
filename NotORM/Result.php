@@ -7,6 +7,8 @@ class NotORM_Result extends NotORM_Abstract implements Iterator, ArrayAccess, Co
 	protected $select = array(), $conditions = array(), $where = array(), $parameters = array(), $order = array(), $limit = null, $offset = null, $group = "", $having = "", $lock = null;
 	protected $union = array(), $unionOrder = array(), $unionLimit = null, $unionOffset = null;
 	protected $data, $referencing = array(), $aggregation = array(), $accessed, $access, $keys = array();
+        
+        protected $manualJoins = array();
 	
 	/** Create table result
 	* @param string
@@ -85,6 +87,16 @@ class NotORM_Result extends NotORM_Abstract implements Iterator, ArrayAccess, Co
 		return "";
 	}
 	
+	public function join($join_table, $join_query)
+        {
+		$this->manualJoins[$join_table] = " " . $join_query;
+	}
+	
+	protected function getManualJoins()
+	{
+		return $this->manualJoins;
+	}
+	
 	protected function createJoins($val) {
 		$return = array();
 		preg_match_all('~\\b([a-z_][a-z0-9_.:]*[.:])[a-z_*]~i', $val, $matches);
@@ -102,7 +114,7 @@ class NotORM_Result extends NotORM_Abstract implements Iterator, ArrayAccess, Co
 				}
 			}
 		}
-		return $return;
+		return array_merge($return, $this->getManualJoins());
 	}
 	
 	/** Get SQL query
@@ -118,9 +130,9 @@ class NotORM_Result extends NotORM_Abstract implements Iterator, ArrayAccess, Co
 		if ($this->select) {
 			$return .= $this->removeExtraDots(implode(", ", $this->select));
 		} elseif ($this->accessed) {
-			$return .= ($join ? "$this->table." : "") . implode(", " . ($join ? "$this->table." : ""), array_keys($this->accessed));
+			$return .= "$this->table.*" . implode(", " . "$this->table.", array_keys($this->accessed));
 		} else {
-			$return .= ($join ? "$this->table." : "") . "*";
+			$return .= "$this->table.*";
 		}
 		$return .= " FROM $this->table" . implode($join) . $this->whereString();
 		if ($this->union) {
@@ -560,7 +572,7 @@ class NotORM_Result extends NotORM_Abstract implements Iterator, ArrayAccess, Co
 			$this->execute();
 			return count($this->data);
 		}
-		return $this->aggregation("COUNT($column)");
+		return $this->aggregation("COUNT($this->table.$column)");
 	}
 	
 	/** Return minimum value from a column
