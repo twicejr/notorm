@@ -90,6 +90,7 @@ class NotORM_Result extends NotORM_Abstract implements Iterator, ArrayAccess, Co
 	public function join($join_table, $join_query)
         {
 		$this->manualJoins[$join_table] = " " . $join_query;
+                return $this;
 	}
 	
 	protected function getManualJoins()
@@ -114,7 +115,18 @@ class NotORM_Result extends NotORM_Abstract implements Iterator, ArrayAccess, Co
 				}
 			}
 		}
-		return array_merge($return, $this->getManualJoins());
+                
+                $result = $this->getManualJoins();
+                foreach($return as $key => $query)
+                {
+                    if(isset($result[$key]))
+                    {
+                        continue;
+                    }
+                    $result[$key] = $query;
+                }
+                
+                return $result;
 	}
 	
 	/** Get SQL query
