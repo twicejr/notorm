@@ -575,6 +575,15 @@ class NotORM_Result extends NotORM_Abstract implements Iterator, ArrayAccess, Co
 		}
 	}
 	
+        /** Count number of rows
+	* @param string
+	* @return int
+	*/
+	function countDistinct($column) {
+		return $this->aggregation("COUNT(DISTINCT $this->table.$column)");
+	}
+	
+        
 	/** Count number of rows
 	* @param string
 	* @return int
