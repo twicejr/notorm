@@ -61,7 +61,7 @@ class NotORM_Result extends NotORM_Abstract implements Iterator, ArrayAccess, Co
 			$return .= " HAVING $this->having";
 		}
 		if ($this->order) {
-			$return .= " ORDER BY " . str_replace(array("'",'"',"-",';','GROUP','HAVING','AND','OR',"DELETE",'DROP'), '', implode(", ", $this->order));
+			$return .= " ORDER BY " . str_replace(array("'",'"',"-",';',' GROUP ',' HAVING ',' AND ',' OR '," DELETE ",' DROP '), '', implode(", ", $this->order));
 		}
 		$return = $this->removeExtraDots($return);
 		
