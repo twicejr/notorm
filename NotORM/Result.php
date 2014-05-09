@@ -753,12 +753,13 @@ class NotORM_Result extends NotORM_Abstract implements Iterator, ArrayAccess, Co
 	}
 	
 	// Iterator implementation (not IteratorAggregate because $this->data can be changed during iteration)
-	
 	function rewind() {
 		$this->execute();
 		$this->keys = array_keys($this->data);
-		reset($this->keys);
+		reset($this->data); //was keys.
+                reset($this->keys); //was keys.
 	}
+	
 	
 	/** @return NotORM_Row */
 	function current() {
