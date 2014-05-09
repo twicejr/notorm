@@ -131,7 +131,7 @@ class Row extends ClassAbstract implements \IteratorAggregate, \ArrayAccess, \Co
 	
 	function getIterator() {
 		$this->access(null);
-		return new ArrayIterator($this->row);
+		return new \ArrayIterator($this->row);
 	}
 	
 	// Countable implementation
