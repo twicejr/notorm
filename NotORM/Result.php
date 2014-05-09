@@ -1,10 +1,11 @@
 <?php
+namespace NotORM;
 
 /** Filtered table representation
 * @method Result and(mixed $condition, mixed $parameters = array()) Add AND condition
 * @method Result or(mixed $condition, mixed $parameters = array()) Add OR condition
 */
-class Result extends ClassAbstract implements Iterator, ArrayAccess, Countable, JsonSerializable {
+class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable {
 	protected $single;
 	protected $select = array(), $conditions = array(), $where = array(), $parameters = array(), $order = array(), $limit = null, $offset = null, $group = "", $having = "", $lock = null;
 	protected $union = array(), $unionOrder = array(), $unionLimit = null, $unionOffset = null;
@@ -336,14 +337,14 @@ class Result extends ClassAbstract implements Iterator, ArrayAccess, Countable, 
 			return $this->insert("$values ON DUPLICATE KEY UPDATE " . implode(", ", $set));
 		} else {
 			$connection = $this->notORM->connection;
-			$errorMode = $connection->getAttribute(PDO::ATTR_ERRMODE);
-			$connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$errorMode = $connection->getAttribute(\PDO::ATTR_ERRMODE);
+			$connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 			try {
 				$return = $this->insert($values);
-				$connection->setAttribute(PDO::ATTR_ERRMODE, $errorMode);
+				$connection->setAttribute(\PDO::ATTR_ERRMODE, $errorMode);
 				return $return;
-			} catch (PDOException $e) {
-				$connection->setAttribute(PDO::ATTR_ERRMODE, $errorMode);
+			} catch (\PDOException $e) {
+				$connection->setAttribute(\PDO::ATTR_ERRMODE, $errorMode);
 				if ($e->getCode() == "23000" || $e->getCode() == "23505") { // "23000" - duplicate key, "23505" unique constraint pgsql
 					if (!$update) {
 						return 0;
@@ -352,9 +353,9 @@ class Result extends ClassAbstract implements Iterator, ArrayAccess, Countable, 
 					$return = $clone->where($unique)->update($update);
 					return ($return ? $return + 1 : $return);
 				}
-				if ($errorMode == PDO::ERRMODE_EXCEPTION) {
+				if ($errorMode == \PDO::ERRMODE_EXCEPTION) {
 					throw $e;
-				} elseif ($errorMode == PDO::ERRMODE_WARNING) {
+				} elseif ($errorMode == \PDO::ERRMODE_WARNING) {
 					trigger_error("PDOStatement::execute(): " . $e->getMessage(), E_USER_WARNING); // E_WARNING is unusable
 				}
 			}
@@ -655,7 +656,7 @@ class Result extends ClassAbstract implements Iterator, ArrayAccess, Countable, 
 			}
 			try {
 				$result = $this->query($this->__toString(), $parameters);
-			} catch (PDOException $exception) {
+			} catch (\PDOException $exception) {
 				// handled later
 			}
 			if (!$result) {
@@ -669,7 +670,7 @@ class Result extends ClassAbstract implements Iterator, ArrayAccess, Countable, 
 			}
 			$this->rows = array();
 			if ($result) {
-				$result->setFetchMode(PDO::FETCH_ASSOC);
+				$result->setFetchMode(\PDO::FETCH_ASSOC);
 				foreach ($result as $key => $row) {
 					if (isset($row[$this->primary])) {
 						$key = $row[$this->primary];
@@ -677,10 +678,10 @@ class Result extends ClassAbstract implements Iterator, ArrayAccess, Countable, 
 							$this->access[$this->primary] = true;
 						}
 					}
-                                        if(isset($this->rows[$key]))
-                                        {
-                                            throw new Exception('The primary key of the selected table occurs more than one time in the rows. Join differently so that this does not happen!');
-                                        }
+                    if(isset($this->rows[$key]))
+                    {
+                        throw new Exception('The primary key of the selected table occurs more than one time in the rows. Join differently so that this does not happen!');
+                    }
 					$this->rows[$key] = new $this->notORM->rowClass($row, $this);
 				}
 			}

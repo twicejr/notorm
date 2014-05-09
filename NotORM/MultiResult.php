@@ -1,4 +1,5 @@
 <?php
+namespace NotORM;
 
 /** Representation of filtered table grouped by some column
 */

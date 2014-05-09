@@ -1,4 +1,5 @@
 <?php
+namespace NotORM;
 
 /** Loading and saving data, it's only cache so load() does not need to block until save()
 */
@@ -18,8 +19,6 @@ interface Cache {
 	function save($key, $data);
 	
 }
-
-namespace NotORM;
 
 /** Cache using $_SESSION["NotORM"]
 */
@@ -104,7 +103,7 @@ class CacheInclude implements Cache {
 class CacheDatabase implements Cache {
 	private $connection;
 	
-	function __construct(PDO $connection) {
+	function __construct(\PDO $connection) {
 		$this->connection = $connection;
 	}
 	
@@ -127,7 +126,7 @@ class CacheDatabase implements Cache {
 			$result = $this->connection->prepare("INSERT INTO notorm (data, id) VALUES (?, ?)");
 			try {
 				@$result->execute($parameters); // @ - ignore duplicate key error
-			} catch (PDOException $e) {
+			} catch (\PDOException $e) {
 				if ($e->getCode() != "23000") { // "23000" - duplicate key
 					throw $e;
 				}

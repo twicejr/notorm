@@ -1,8 +1,9 @@
 <?php
+namespace NotORM;
 
 /** Single row representation
 */
-class Row extends Abstract implements IteratorAggregate, ArrayAccess, Countable, JsonSerializable {
+class Row extends ClassAbstract implements \IteratorAggregate, \ArrayAccess, \Countable, \JsonSerializable {
 	private $modified = array();
 	protected $row, $result, $primary;
 	
