@@ -342,7 +342,7 @@ class NotORM_Result extends NotORM_Abstract implements Iterator, ArrayAccess, Co
 				$return = $this->insert($values);
 				$connection->setAttribute(PDO::ATTR_ERRMODE, $errorMode);
 				return $return;
-			} catch (PDOException $e) {
+			} catch (\PDOException $e) {
 				$connection->setAttribute(PDO::ATTR_ERRMODE, $errorMode);
 				if ($e->getCode() == "23000" || $e->getCode() == "23505") { // "23000" - duplicate key, "23505" unique constraint pgsql
 					if (!$update) {
@@ -655,7 +655,7 @@ class NotORM_Result extends NotORM_Abstract implements Iterator, ArrayAccess, Co
 			}
 			try {
 				$result = $this->query($this->__toString(), $parameters);
-			} catch (PDOException $exception) {
+			} catch (\PDOException $exception) {
 				// handled later
 			}
 			if (!$result) {
@@ -679,7 +679,7 @@ class NotORM_Result extends NotORM_Abstract implements Iterator, ArrayAccess, Co
 					}
                                         if(isset($this->rows[$key]))
                                         {
-                                            throw new Exception('The primary key of the selected table occurs more than one time in the rows. Join differently so that this does not happen!');
+                                            throw new \Exception('The primary key of the selected table occurs more than one time in the rows. Join differently so that this does not happen!');
                                         }
 					$this->rows[$key] = new $this->notORM->rowClass($row, $this);
 				}
