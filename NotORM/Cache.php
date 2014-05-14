@@ -127,7 +127,7 @@ class NotORM_Cache_Database implements NotORM_Cache {
 			$result = $this->connection->prepare("INSERT INTO notorm (data, id) VALUES (?, ?)");
 			try {
 				@$result->execute($parameters); // @ - ignore duplicate key error
-			} catch (PDOException $e) {
+			} catch (\PDOException $e) {
 				if ($e->getCode() != "23000") { // "23000" - duplicate key
 					throw $e;
 				}
