@@ -1,8 +1,9 @@
 <?php
+namespace NotORM;
 
 /** Loading and saving data, it's only cache so load() does not need to block until save()
 */
-interface NotORM_Cache {
+interface Cache {
 	
 	/** Load stored data
 	* @param string
@@ -19,11 +20,9 @@ interface NotORM_Cache {
 	
 }
 
-
-
 /** Cache using $_SESSION["NotORM"]
 */
-class NotORM_Cache_Session implements NotORM_Cache {
+class CacheSession implements NotORMCache {
 	
 	function load($key) {
 		if (!isset($_SESSION["NotORM"][$key])) {
@@ -42,7 +41,7 @@ class NotORM_Cache_Session implements NotORM_Cache {
 
 /** Cache using file
 */
-class NotORM_Cache_File implements NotORM_Cache {
+class CacheFile implements Cache {
 	private $filename, $data = array();
 	
 	function __construct($filename) {
@@ -70,7 +69,7 @@ class NotORM_Cache_File implements NotORM_Cache {
 
 /** Cache using PHP include
 */
-class NotORM_Cache_Include implements NotORM_Cache {
+class CacheInclude implements Cache {
 	private $filename, $data = array();
 	
 	function __construct($filename) {
@@ -101,10 +100,10 @@ class NotORM_Cache_Include implements NotORM_Cache {
 
 /** Cache storing data to the "notorm" table in database
 */
-class NotORM_Cache_Database implements NotORM_Cache {
+class CacheDatabase implements Cache {
 	private $connection;
 	
-	function __construct(PDO $connection) {
+	function __construct(\PDO $connection) {
 		$this->connection = $connection;
 	}
 	
@@ -145,7 +144,7 @@ class NotORM_Cache_Database implements NotORM_Cache {
 
 /** Cache using "NotORM." prefix in Memcache
 */
-class NotORM_Cache_Memcache implements NotORM_Cache {
+class CacheMemcache implements Cache {
 	private $memcache;
 	
 	function __construct(Memcache $memcache) {
@@ -170,7 +169,7 @@ class NotORM_Cache_Memcache implements NotORM_Cache {
 
 /** Cache using "NotORM." prefix in APC
 */
-class NotORM_Cache_APC implements NotORM_Cache {
+class CacheAPC implements Cache {
 	
 	function load($key) {
 		$return = apc_fetch("NotORM.$key", $success);
