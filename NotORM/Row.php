@@ -11,7 +11,7 @@ class Row extends ClassAbstract implements \IteratorAggregate, \ArrayAccess, \Co
 	function __construct(array $row, Result $result) {
 		$this->row = $row;
 		$this->result = $result;
-		if (array_key_exists($result->primary, $row)) {
+		if (isset($row[$result->primary])) {
 			$this->primary = $row[$result->primary];
 		}
 	}
@@ -148,7 +148,7 @@ class Row extends ClassAbstract implements \IteratorAggregate, \ArrayAccess, \Co
 	*/
 	function offsetExists($key) {
 		$this->access($key);
-		$return = array_key_exists($key, $this->row);
+		$return = isset($this->row[$key]);
 		if (!$return) {
 			$this->access($key, true);
 		}
@@ -161,7 +161,7 @@ class Row extends ClassAbstract implements \IteratorAggregate, \ArrayAccess, \Co
 	*/
 	function offsetGet($key) {
 		$this->access($key);
-		if (!array_key_exists($key, $this->row)) {
+		if (!isset($this->row[$key])) {
 			$this->access($key, true);
 		}
 		return $this->row[$key];
