@@ -29,7 +29,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	/** Save data to cache and empty result
 	*/
 	function __destruct() {
-		if ($this->notORM->cache && !$this->select && isset($this->rows)) {
+		if (is_object($this->notORM->cache) && $this->notORM->cache && !$this->select && isset($this->rows)) {
 			$access = $this->access;
 			if (is_array($access)) {
 				$access = array_filter($access);
