@@ -7,12 +7,14 @@ namespace NotORM;
 */
 class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable {
 	protected $single;
-	protected $select = array(), $conditions = array(), $where = array(), $parameters = array(), $order = array(), $limit = null, $offset = null, $group = "", $having = "", $lock = null;
+	protected $distinct = false;
+        protected $select = array(), $conditions = array(), $where = array(), $parameters = array(), $order = array(), $limit = null, $offset = null, $group = "", $having = "", $lock = null;
 	protected $union = array(), $unionOrder = array(), $unionLimit = null, $unionOffset = null;
 	protected $data, $referencing = array(), $aggregation = array(), $accessed, $access, $keys = array();
         
         protected $manualJoins = array();
-	
+        public $disabled_joins = false;
+        
 	/** Create table result
 	* @param string
 	* @param NotORM
@@ -40,6 +42,12 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 		unset($this->data);
 	}
 	
+        public function distinct($distinct)
+        {
+            $this->distinct = (bool) $distinct;
+            return $this;
+        }
+        
 	protected function limitString($limit, $offset = null) {
 		$return = "";
 		if (isset($limit) && $this->notORM->driver != "oci" && $this->notORM->driver != "dblib" && $this->notORM->driver != "mssql" && $this->notORM->driver != "sqlsrv") {
@@ -103,21 +111,32 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	
 	protected function createJoins($val) {
 		$return = array();
-		preg_match_all('~\\b([a-z_][a-z0-9_.:]*[.:])[a-z_*]~i', $val, $matches);
-		foreach ($matches[1] as $names) {
-			$parent = $this->table;
-			if ($names != "$parent.") { // case-sensitive
-				preg_match_all('~\\b([a-z_][a-z0-9_]*)([.:])~i', $names, $matches, PREG_SET_ORDER);
-				foreach ($matches as $match) {
-					list(, $name, $delimiter) = $match;
-					$table = $this->notORM->structure->getReferencedTable($name, $parent);
-					$column = ($delimiter == ':' ? $this->notORM->structure->getPrimary($parent) : $this->notORM->structure->getReferencedColumn($name, $parent));
-					$primary = ($delimiter == ':' ? $this->notORM->structure->getReferencedColumn($parent, $table) : $this->notORM->structure->getPrimary($table));
-					$return[$name] = " LEFT JOIN $table" . ($table != $name ? " AS $name" : "") . " ON $parent.$column = $name.$primary"; // should use alias if the table is used on more places
-					$parent = $name;
-				}
-			}
-		}
+                if($this->disabled_joins !== true)
+                {
+                    if(!is_array($this->disabled_joins))
+                    {
+                        $this->disabled_joins = array();
+                    }
+                    preg_match_all('~\\b([a-z_][a-z0-9_.:]*[.:])[a-z_*]~i', $val, $matches);
+                    foreach ($matches[1] as $names) {
+                            $parent = $this->table;
+                            if ($names != "$parent.") { // case-sensitive
+                                    preg_match_all('~\\b([a-z_][a-z0-9_]*)([.:])~i', $names, $matches, PREG_SET_ORDER);
+                                    foreach ($matches as $match) {
+                                            list(, $name, $delimiter) = $match;
+                                            if(in_array($name, $this->disabled_joins))
+                                            {
+                                                continue;
+                                            }
+                                            $table = $this->notORM->structure->getReferencedTable($name, $parent);
+                                            $column = ($delimiter == ':' ? $this->notORM->structure->getPrimary($parent) : $this->notORM->structure->getReferencedColumn($name, $parent));
+                                            $primary = ($delimiter == ':' ? $this->notORM->structure->getReferencedColumn($parent, $table) : $this->notORM->structure->getPrimary($table));
+                                            $return[$name] = " LEFT JOIN $table" . ($table != $name ? " AS $name" : "") . " ON $parent.$column = $name.$primary"; // should use alias if the table is used on more places
+                                            $parent = $name;
+                                    }
+                            }
+                    }
+                }
                 
                 $result = $this->getManualJoins();
                 foreach($return as $key => $query)
@@ -136,7 +155,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	* @return string
 	*/
 	function __toString() {
-		$return = "SELECT" . $this->topString($this->limit, $this->offset) . " ";
+		$return = "SELECT " . ($this->distinct ? ' DISTINCT' : '') . $this->topString($this->limit, $this->offset) . " ";
 		$join = $this->createJoins(implode(",", $this->conditions) . "," . implode(",", $this->select) . ",$this->group,$this->having," . implode(",", $this->order));
 		if (!isset($this->rows) && $this->notORM->cache && !is_string($this->accessed)) {
 			$this->accessed = $this->notORM->cache->load("$this->table;" . implode(",", $this->conditions));
