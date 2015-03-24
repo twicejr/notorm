@@ -702,7 +702,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 							$this->access[$this->primary] = true;
 						}
 					}
-                                        if(isset($this->rows[$key]))
+                                        if(isset($this->rows[$key]) && !defined('NOTORM_IGNORE_PRIMARY_DUPLICATE'))
                                         {
                                             throw new \Exception('The primary key of the selected table occurs more than one time in the rows. Join differently so that this does not happen!');
                                         }
