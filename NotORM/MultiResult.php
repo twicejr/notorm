@@ -102,8 +102,8 @@ class MultiResult extends Result {
 		}
 	}
 	
-	function count($column = "") {
-		$return = parent::count($column);
+	function count($column = "", $table = null) {
+		$return = parent::count($column, $table);
 		return (isset($return) ? $return : 0);
 	}
 	

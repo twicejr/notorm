@@ -633,12 +633,13 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	* @param string
 	* @return int
 	*/
-	function count($column = "") {
+	function count($column = "", $table = null) {
 		if (!$column) {
 			$this->execute();
 			return count($this->data);
 		}
-		return $this->aggregation("COUNT($this->table.$column)");
+        $table = $table ? $table : $this->table;
+		return $this->aggregation("COUNT($table.$column)");
 	}
 	
 	/** Return minimum value from a column
@@ -702,10 +703,10 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 							$this->access[$this->primary] = true;
 						}
 					}
-                                        if(isset($this->rows[$key]) && !defined('NOTORM_IGNORE_PRIMARY_DUPLICATE'))
-                                        {
-                                            throw new \Exception('The primary key of the selected table occurs more than one time in the rows. Join differently so that this does not happen!');
-                                        }
+                    if(isset($this->rows[$key]) && !defined('NOTORM_IGNORE_PRIMARY_DUPLICATE'))
+                    {
+                        throw new \Exception('The primary key of the selected table occurs more than one time in the rows. Join differently so that this does not happen!');
+                    }
 					$this->rows[$key] = new $this->notORM->rowClass($row, $this);
 				}
 			}
