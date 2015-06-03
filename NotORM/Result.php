@@ -703,6 +703,10 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 							$this->access[$this->primary] = true;
 						}
 					}
+                    if(isset($this->rows[$key]))
+                    {
+                        $key = null;
+                    }
 					$this->rows[$key] = new $this->notORM->rowClass($row, $this);
 				}
 			}
