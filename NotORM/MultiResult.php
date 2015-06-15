@@ -39,9 +39,9 @@ class MultiResult extends Result {
 		return parent::insert_multi($args);
 	}
 	
-	function insert_update(array $unique, array $insert, array $update = array()) {
+	function insert_update(array $unique, array $insert, array $update = array(), $check_exists_row_fields = array()) {
 		$unique[$this->column] = $this->active;
-		return parent::insert_update($unique, $insert, $update);
+		return parent::insert_update($unique, $insert, $update, $check_exists_row_fields);
 	}
 	
 	protected function single() {

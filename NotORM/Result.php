@@ -337,7 +337,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	* @param array ($column => $value), empty array means use $insert
 	* @return int number of affected rows or false in case of an error
 	*/
-	function insert_update(array $unique, array $insert, array $update = array()) {
+	function insert_update(array $unique, array $insert, array $update = array(), $check_exists_row_fields = array()) {
 		if (!$update) {
 			$update = $insert;
 		}
@@ -353,6 +353,15 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 				$set[] = "$key = " . $this->quote($val);
 				//! parameters
 			}
+            
+            if($check_exists_row_fields)
+            {
+                if($this->select('*')->where($check_exists_row_fields)->fetch())
+                {
+                    return 0;
+                }
+            }
+            
 			return $this->insert("$values ON DUPLICATE KEY UPDATE " . implode(", ", $set));
 		} else {
 			$connection = $this->notORM->connection;
