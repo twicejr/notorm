@@ -276,6 +276,9 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 		if (!$return) {
 			return false;
 		}
+        
+        \NotORM\NotORM::log($return->queryString, $return->rowCount());
+        
 		$this->rows = null;
 		return $return->rowCount();
 	}
@@ -328,6 +331,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 		if (!$return) {
 			return false;
 		}
+        \NotORM\NotORM::log($return->queryString, $return->rowCount());
 		return $return->rowCount();
 	}
 	
@@ -408,6 +412,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 		if (!$return) {
 			return false;
 		}
+        \NotORM\NotORM::log($return->queryString, $return->rowCount());
 		return $return->rowCount();
 	}
 	

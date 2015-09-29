@@ -27,6 +27,15 @@ namespace NotORM
     */
     class NotORM extends ClassAbstract {
 
+        
+        public static function log($query, $affected_rows)
+        {
+            if(static::$logClass && $affected_rows)
+            {
+                static::$logClass->log($query .' /* Rows affected: ' .  $affected_rows . ' */');
+            }
+        }
+        
         /** Create database representation
         * @param PDO
         * @param Structure or null for new StructureConvention
