@@ -12,8 +12,9 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	protected $union = array(), $unionOrder = array(), $unionLimit = null, $unionOffset = null;
 	protected $data, $referencing = array(), $aggregation = array(), $accessed, $access, $keys = array();
         
-        protected $manualJoins = array();
-        public $disabled_joins = false;
+    protected $manualJoins = array();
+    public $disabled_joins = false;
+    public $replay = array();    
         
 	/** Create table result
 	* @param string
@@ -44,6 +45,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	
         public function distinct($distinct)
         {
+            $this->replay['distinct'][] = func_get_args();
             $this->distinct = (bool) $distinct;
             return $this;
         }
@@ -99,7 +101,8 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	}
 	
 	public function join($join_table, $join_query)
-        {
+    {
+        $this->replay['join'][] = func_get_args();
 		$this->manualJoins[$join_table] = " " . $join_query;
                 return $this;
 	}
@@ -271,6 +274,12 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 			//! driver specific empty $data and extended insert
 			$insert = "(" . implode(", ", array_keys($data)) . ") VALUES " . implode(", ", $values);
 		}
+        
+        if($insert === false)
+        {
+            //No columns specified. Use "null";
+            $insert = 'VALUES (NULL)';
+        }
 		// requires empty $this->parameters
 		$return = $this->query("INSERT INTO $this->table $insert", $parameters);
 		if (!$return) {
@@ -294,6 +303,10 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 		if (!$return) {
 			return false;
 		}
+        if($data === false)
+        {
+            $data = array();
+        }
 		if (!is_array($data)) {
 			return $return;
 		}
@@ -423,6 +436,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	*/
 	function select($columns) {
 		$this->__destruct();
+        $this->replay['select'][] = func_get_args();
 		if ($columns != "") {
 			foreach (func_get_args() as $columns) {
 				$this->select[] = $columns;
@@ -441,6 +455,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	*/
 	function where($condition, $parameters = array()) {
 		$args = func_get_args();
+        $this->replay['where'][] = $args;
 		return $this->whereOperator("AND", $args);
 	}
 	
@@ -536,7 +551,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 		trigger_error("Call to undefined method Result::$name()", E_USER_ERROR);
 	}
 	
-	/** Shortcut for where()
+	/** Shortcut for where() @note: why __invoke???? this is just AND.
 	* @param string
 	* @param mixed
 	* @param mixed ...
@@ -544,6 +559,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	*/
 	function __invoke($where, $parameters = array()) {
 		$args = func_get_args();
+        $this->replay['and'][] = $args;
 		return $this->whereOperator("AND", $args);
 	}
 	
@@ -553,7 +569,8 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	* @return Result fluent interface
 	*/
 	function order($columns) {
-		$this->rows = null;
+        $this->replay['order'][] = func_get_args();
+        $this->rows = null; 
 		if ($columns != "") {
 			foreach (func_get_args() as $columns) {
 				if ($this->union) {
@@ -576,6 +593,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	* @return Result fluent interface
 	*/
 	function limit($limit, $offset = null) {
+        $this->replay['limit'][] = func_get_args();
 		$this->rows = null;
 		if ($this->union) {
 			$this->unionLimit = +$limit;
@@ -593,6 +611,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	* @return Result fluent interface
 	*/
 	function group($columns, $having = "") {
+        $this->replay['group'][] = func_get_args();
 		$this->__destruct();
 		$this->group = $columns;
 		$this->having = $having;
@@ -604,6 +623,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	* @return Result fluent interface
 	*/
 	function lock($exclusive = true) {
+        $this->replay['lock'][] = func_get_args();
 		$this->lock = $exclusive;
 		return $this;
 	}
@@ -614,6 +634,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	* @return Result fluent interface
 	*/
 	function union(Result $result, $all = false) {
+        $this->replay['union'][] = func_get_args();
 		$this->union[] = " UNION " . ($all ? "ALL " : "") . ($this->notORM->driver == "sqlite" || $this->notORM->driver == "oci" ? $result : "($result)");
 		$this->parameters = array_merge($this->parameters, $result->parameters);
 		return $this;
@@ -624,6 +645,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	* @return string
 	*/
 	function aggregation($function) {
+        $this->replay['aggregation'][] = func_get_args();
 		$join = $this->createJoins(implode(",", $this->conditions) . ",$function");
 		$query = "SELECT $function FROM $this->table" . implode($join);
 		if ($this->where) {
