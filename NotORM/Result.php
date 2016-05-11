@@ -227,7 +227,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 		}
 		$val = $this->formatValue($val);
 		if (is_float($val)) {
-			return sprintf("%F", $val); // otherwise depends on setlocale()
+			return $val; //Just return the float and let MySQL handle the casting.
 		}
 		if ($val === false) {
 			return "0";
