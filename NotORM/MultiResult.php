@@ -4,6 +4,7 @@ namespace NotORM;
 /** Representation of filtered table grouped by some column
 */
 class MultiResult extends Result {
+        protected $data = array();
 	private $result, $column, $active;
 	
 	/** @access protected must be public because it is called from Row */
