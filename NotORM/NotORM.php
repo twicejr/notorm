@@ -32,7 +32,7 @@ namespace NotORM
         {
             if(static::$logClass && $affected_rows)
             {
-                static::$logClass->log($query .' /* Rows affected: ' .  $affected_rows . ' */');
+                static::$logClass->log($query .'; /* (Rows affected: ' .  $affected_rows . ')*/');
             }
         }
         
