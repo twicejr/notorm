@@ -100,10 +100,17 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 		return "";
 	}
 	
-	public function join($join_table, $join_query)
-    {
-        $this->replay['join'][] = func_get_args();
-		$this->manualJoins[$join_table] = " " . $join_query;
+	public function join($join_table, $join_query, $before = false)
+        {
+                $this->replay['join'][] = func_get_args();
+                if(!$before)
+                {
+                    $this->manualJoins[$join_table] = " " . $join_query;
+                }
+                else
+                {
+                    $this->manualJoins = array($join_table => ' ' . $join_query) + $this->manualJoins;
+                }
                 return $this;
 	}
 	
