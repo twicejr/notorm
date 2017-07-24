@@ -74,7 +74,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 			$return .= " HAVING $this->having";
 		}
 		if ($this->order) {
-			$return .= " ORDER BY " . str_replace(array("'",'"',"-",';',' GROUP ',' HAVING ',' AND ',' OR '," DELETE ",' DROP '), '', implode(", ", $this->order));
+			$return .= " ORDER BY " . str_replace(array(' GROUP ',' HAVING ',' AND ',' OR '," DELETE ",' DROP '), '', implode(", ", $this->order));
 		}
 		$return = $this->removeExtraDots($return);
 		
