@@ -15,6 +15,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
     protected $manualJoins = array();
     public $disabled_joins = false;
     public $replay = array();    
+    protected $_replay;
         
 	/** Create table result
 	* @param string
@@ -42,13 +43,18 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 		$this->rows = null;
 		unset($this->data);
 	}
-	
-        public function distinct($distinct)
-        {
-            $this->replay['distinct'][] = func_get_args();
-            $this->distinct = (bool) $distinct;
-            return $this;
-        }
+    
+    public function setReplay($bool)
+    {
+        $this->_replay = $bool;
+    }
+
+    public function distinct($distinct)
+    {
+        !$this->_replay || $this->replay['distinct'][] = func_get_args();
+        $this->distinct = (bool) $distinct;
+        return $this;
+    }
         
 	protected function limitString($limit, $offset = null) {
 		$return = "";
@@ -102,7 +108,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	
 	public function join($join_table, $join_query, $before = false)
         {
-                $this->replay['join'][] = func_get_args();
+                !$this->_replay || $this->replay['join'][] = func_get_args();
                 if(!$before)
                 {
                     $this->manualJoins[$join_table] = " " . $join_query;
@@ -443,7 +449,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	*/
 	function select($columns) {
 		$this->__destruct();
-        $this->replay['select'][] = func_get_args();
+        !$this->_replay || $this->replay['select'][] = func_get_args();
 		if ($columns != "") {
 			foreach (func_get_args() as $columns) {
 				$this->select[] = $columns;
@@ -462,7 +468,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	*/
 	function where($condition, $parameters = array()) {
 		$args = func_get_args();
-        $this->replay['where'][] = $args;
+        !$this->_replay || $this->replay['where'][] = $args;
 		return $this->whereOperator("AND", $args);
 	}
 	
@@ -566,7 +572,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	*/
 	function __invoke($where, $parameters = array()) {
 		$args = func_get_args();
-        $this->replay['and'][] = $args;
+        !$this->_replay || $this->replay['and'][] = $args;
 		return $this->whereOperator("AND", $args);
 	}
 	
@@ -576,7 +582,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	* @return Result fluent interface
 	*/
 	function order($columns) {
-        $this->replay['order'][] = func_get_args();
+        !$this->_replay || $this->replay['order'][] = func_get_args();
         $this->rows = null; 
 		if ($columns != "") {
 			foreach (func_get_args() as $columns) {
@@ -600,7 +606,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	* @return Result fluent interface
 	*/
 	function limit($limit, $offset = null) {
-        $this->replay['limit'][] = func_get_args();
+        !$this->_replay || $this->replay['limit'][] = func_get_args();
 		$this->rows = null;
 		if ($this->union) {
 			$this->unionLimit = +$limit;
@@ -618,7 +624,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	* @return Result fluent interface
 	*/
 	function group($columns, $having = "") {
-        $this->replay['group'][] = func_get_args();
+        !$this->_replay || $this->replay['group'][] = func_get_args();
 		$this->__destruct();
 		$this->group = $columns;
 		$this->having = $having;
@@ -630,7 +636,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	* @return Result fluent interface
 	*/
 	function lock($exclusive = true) {
-        $this->replay['lock'][] = func_get_args();
+        !$this->_replay || $this->replay['lock'][] = func_get_args();
 		$this->lock = $exclusive;
 		return $this;
 	}
@@ -641,7 +647,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	* @return Result fluent interface
 	*/
 	function union(Result $result, $all = false) {
-        $this->replay['union'][] = func_get_args();
+        !$this->_replay || $this->replay['union'][] = func_get_args();
 		$this->union[] = " UNION " . ($all ? "ALL " : "") . ($this->notORM->driver == "sqlite" || $this->notORM->driver == "oci" ? $result : "($result)");
 		$this->parameters = array_merge($this->parameters, $result->parameters);
 		return $this;
@@ -652,7 +658,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	* @return string
 	*/
 	function aggregation($function) {
-        $this->replay['aggregation'][] = func_get_args();
+        !$this->_replay || $this->replay['aggregation'][] = func_get_args();
 		$join = $this->createJoins(implode(",", $this->conditions) . ",$function");
 		$query = "SELECT $function FROM $this->table" . implode($join);
 		if ($this->where) {
