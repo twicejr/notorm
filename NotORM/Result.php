@@ -58,7 +58,7 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
         
 	protected function limitString($limit, $offset = null) {
 		$return = "";
-		if (isset($limit) && $this->notORM->driver != "oci" && $this->notORM->driver != "dblib" && $this->notORM->driver != "mssql" && $this->notORM->driver != "sqlsrv") {
+		if (isset($limit) && $limit && $this->notORM->driver != "oci" && $this->notORM->driver != "dblib" && $this->notORM->driver != "mssql" && $this->notORM->driver != "sqlsrv") {
 			$return .= " LIMIT $limit";
 			if ($offset) {
 				$return .= " OFFSET $offset";
