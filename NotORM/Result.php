@@ -8,7 +8,7 @@ namespace NotORM;
 class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable {
 	protected $single;
 	protected $distinct = false;
-        protected $select = array(), $conditions = array(), $where = array(), $parameters = array(), $order = array(), $limit = null, $offset = null, $group = "", $having = "", $lock = null;
+    public $select = array(), $conditions = array(), $where = array(), $parameters = array(), $order = array(), $limit = null, $offset = null, $group = "", $having = "", $lock = null;
 	protected $union = array(), $unionOrder = array(), $unionLimit = null, $unionOffset = null;
 	protected $data, $referencing = array(), $aggregation = array(), $accessed, $access, $keys = array();
         
@@ -609,11 +609,11 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
         !$this->_replay || $this->replay['limit'][] = func_get_args();
 		$this->rows = null;
 		if ($this->union) {
-			$this->unionLimit = +$limit;
-			$this->unionOffset = +$offset;
+			$this->unionLimit = $limit;
+			$this->unionOffset = $offset;
 		} else {
-			$this->limit = +$limit;
-			$this->offset = +$offset;
+			$this->limit = $limit;
+			$this->offset = $offset;
 		}
 		return $this;
 	}
