@@ -608,12 +608,20 @@ class Result extends ClassAbstract implements \Iterator, \ArrayAccess, \Countabl
 	function limit($limit, $offset = null) {
         !$this->_replay || $this->replay['limit'][] = func_get_args();
 		$this->rows = null;
+        if($limit !== null)
+        {
+            $limit = +$limit;
+        }
+        if($offset !== null)
+        {
+            $offset = +$offset;
+        }
 		if ($this->union) {
-			$this->unionLimit = +$limit;
-			$this->unionOffset = +$offset;
+			$this->unionLimit = $limit;
+			$this->unionOffset = $offset;
 		} else {
-			$this->limit = +$limit;
-			$this->offset = +$offset;
+			$this->limit = $limit;
+			$this->offset = $offset;
 		}
 		return $this;
 	}
